@@ -10,7 +10,6 @@ depends: [
   "batteries"
   "dolog"
   "dune" {>= "1.11"}
-  "line_oriented"
   "minicli"
   "ocaml"
   "parany"

@@ -3,7 +3,7 @@
   (name aricomp)
   (public_name aricomp)
   (modules AC)
-  (libraries batteries dolog line_oriented unix zarith))
+  (libraries batteries dolog unix zarith))
 
 (executables
   (names test)
