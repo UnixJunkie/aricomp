@@ -2,7 +2,6 @@
 module A = BatArray
 module Ht = BatHashtbl
 module L = BatList
-module LO = Line_oriented  
 module Log = Dolog.Log
 
 type token = int
@@ -27,23 +26,31 @@ let ht_incr ht k =
   try Ht.replace ht k Z.(one + Ht.find ht k)
   with Not_found -> Ht.add ht k Z.one
 
+let with_input_fd fn f =
+  let fd = Unix.(openfile fn [O_RDONLY] 0x400) in
+  let res = f fd in
+  Unix.close fd;
+  res
+
 let compute_byte_freqs_all_file fn =
   let res = Ht.create 256 in
   let total = ref Z.zero in
-  for i = 0 to 255 do
-    (* make any byte representable: init count is 1 instead of 0 *)
-    Ht.add res i Z.one;
-    total := Z.(!total + one)
-  done;
-  (* FBR:TODO file should be read into a buffer instead of line-by-line *)
-  LO.iter fn (fun line ->
-      String.iter (fun c ->
-          ht_incr res (Char.code c);
-          total := Z.(!total + one)
-        ) line;
-      (* EOL is skipped by input_line *)
-      ht_incr res (Char.code '\n');
-      total := Z.(!total + one)
+  let buff_size = 100 * 1024 in
+  let buff = Bytes.create buff_size in
+  with_input_fd fn (fun fd ->
+      try
+        while true do
+          let was_read = Unix.read fd buff 0 buff_size in
+          if was_read = 0 then
+            raise End_of_file
+          else
+            for i = 0 to was_read - 1 do
+              let c = Bytes.get buff i in
+              ht_incr res (Char.code c);
+              total := Z.(!total + one)
+            done
+        done
+      with End_of_file -> ()
     );
   (* count to frequencies *)
   Ht.map (fun _k v ->
