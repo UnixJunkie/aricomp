@@ -72,8 +72,7 @@ let decr_sort_frequencies (freqs: (token, frequency) Ht.t):
 (* sorted freqs to cumulative freqs;
    efficient data structure for the encoder
    WARNING: frequencies MUST BE decr. sorted *)
-let cumulate_frequencies_encoder (freqs: (token * frequency) list):
-  (token, frequency * frequency) Ht.t =
+let cumulate_frequencies_encoder freqs =
   let cum_freq = ref Q.zero in
   let res = Ht.create (L.length freqs) in
   L.iter (fun (tok, freq) ->
